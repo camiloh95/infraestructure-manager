@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/camiloh95/infraestructure-manager#readme",
   "dependencies": {
+    "@aws-sdk/client-cloudformation": "^3.39.0",
     "axios": "^0.24.0",
     "cors": "^2.8.5",
     "dotenv": "^10.0.0",

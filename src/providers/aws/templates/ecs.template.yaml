@@ -1,0 +1,137 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Parameters:
+  ApplicationName:
+    Type: String
+    Description: Application name
+Resources:
+  LogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Join [ "", [ /ecs/, !Ref ApplicationName, ]]
+      RetentionInDays: 30
+  ECRRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Ref ApplicationName
+  ECSCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      CapacityProviders:
+        - FARGATE
+      ClusterName: !Ref ApplicationName
+  EcsSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: ECS Security Group
+      VpcId: vpc-7df61216
+  EcsSecurityGroupHTTPinbound:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref EcsSecurityGroup
+      IpProtocol: tcp
+      FromPort: 80
+      ToPort: 80
+      CidrIp: 0.0.0.0/0
+  EcsSecurityGroupHTTPSinbound:
+    Type: AWS::EC2::SecurityGroupIngress
+    Properties:
+      GroupId: !Ref EcsSecurityGroup
+      IpProtocol: tcp
+      FromPort: 443
+      ToPort: 443
+      CidrIp: 0.0.0.0/0
+  TaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    DependsOn: ECRRepository
+    Properties:
+      Cpu: 256
+      Memory: 512
+      Family: !Ref ApplicationName
+      TaskRoleArn: arn:aws:iam::471344541992:role/ecsTaskExecutionRole
+      NetworkMode: awsvpc
+      ExecutionRoleArn: arn:aws:iam::471344541992:role/ecsTaskExecutionRole
+      ContainerDefinitions:
+        - Name: !Ref ApplicationName
+          Image: !Join [ ":", [ !GetAtt ECRRepository.RepositoryUri, latest ] ]
+          PortMappings:
+            - ContainerPort: 80
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Join [ "", [ /ecs/, !Ref ApplicationName, ]]
+              awslogs-region: us-east-2
+              awslogs-stream-prefix: ecs
+  ECSApplicationLoadBalancer:
+    Type: AWS::ElasticLoadBalancingV2::LoadBalancer
+    Properties:
+      Name: !Ref ApplicationName
+      Type: application
+      Scheme: internet-facing
+      Subnets:
+        - subnet-023a8f22e58c9d162
+        - subnet-fdcdc195
+      SecurityGroups:
+        - !Ref EcsSecurityGroup
+  ALBHTTPListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      Port: 80
+      Protocol: HTTP
+      LoadBalancerArn: !Ref ECSApplicationLoadBalancer
+      DefaultActions:
+        - Type: redirect
+          RedirectConfig:
+            Protocol: HTTPS
+            Port: 443
+            Host: "#{host}"
+            Path: "/#{path}"
+            Query: "#{query}"
+            StatusCode: HTTP_301
+  ALBHTTPSListener:
+    Type: AWS::ElasticLoadBalancingV2::Listener
+    Properties:
+      Port: 443
+      Protocol: HTTPS
+      LoadBalancerArn: !Ref ECSApplicationLoadBalancer
+      Certificates:
+        - CertificateArn: arn:aws:acm:us-east-2:471344541992:certificate/fc1892d6-8ec1-4bbf-ac37-392c1880823c
+      DefaultActions:
+        - Type: forward
+          TargetGroupArn: !Ref ECSTargetGroup
+  ECSTargetGroup:
+    Type: AWS::ElasticLoadBalancingV2::TargetGroup
+    DependsOn: ECSApplicationLoadBalancer
+    Properties:
+      HealthCheckIntervalSeconds: 35
+      HealthCheckPath: /health
+      HealthCheckProtocol: HTTP
+      HealthCheckTimeoutSeconds: 30
+      HealthyThresholdCount: 2
+      Name: !Ref ApplicationName
+      Port: 80
+      Protocol: HTTP
+      UnhealthyThresholdCount: 2
+      VpcId: vpc-7df61216
+      TargetType: ip
+  ECSService:
+    Type: AWS::ECS::Service
+    DependsOn:
+      - ALBHTTPSListener
+      - EcsSecurityGroup
+    Properties:
+      ServiceName: !Ref ApplicationName
+      DesiredCount: 1
+      LaunchType: FARGATE
+      Cluster: !Ref ECSCluster
+      LoadBalancers:
+        - ContainerName: !Ref ApplicationName
+          ContainerPort: 80
+          TargetGroupArn: !Ref ECSTargetGroup
+      TaskDefinition: !Ref TaskDefinition
+      NetworkConfiguration:
+        AwsvpcConfiguration:
+          AssignPublicIp: ENABLED
+          SecurityGroups:
+            - !Ref EcsSecurityGroup
+          Subnets:
+            - subnet-023a8f22e58c9d162
