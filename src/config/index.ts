@@ -13,4 +13,11 @@ export default {
       name: process.env.DB_NAME || 'test',
     },
   },
+  bitbucket: {
+    clientId: process.env.BITBUCKET_CLIENT_ID || '',
+    clientSecret: process.env.BITBUCKET_CLIENT_SECRET || '',
+    username: process.env.BITBUCKET_USERNAME || '',
+    password: process.env.BITBUCKET_PASSWORD || '',
+    worspace: process.env.BITBUCKET_WORKSPACE || '',
+  },
 }
