@@ -1,0 +1,31 @@
+{
+  "name": "infraestructure-manager",
+  "version": "1.0.0",
+  "description": "project to handle infraestructure",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/camiloh95/infraestructure-manager.git"
+  },
+  "author": "Camilo Hernandez",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/camiloh95/infraestructure-manager/issues"
+  },
+  "homepage": "https://github.com/camiloh95/infraestructure-manager#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^10.0.0",
+    "express": "^4.17.1",
+    "joi": "^17.4.2",
+    "sequelize": "^6.8.0",
+    "typescript": "^4.4.4"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.12",
+    "@types/express": "^4.17.13"
+  }
+}
