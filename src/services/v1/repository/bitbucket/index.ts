@@ -1,6 +1,13 @@
+import { AWSDynamoDbProvider } from '@providers/aws/aws.dynamodb.provider';
 import { BitbucketProvider } from '@providers/bitbucket/bitbucket.provider';
 
 export class RepositoryService {
+  public async getAllRepositories(tableName: string) {
+    const aAWSDynamoDbProvider = new AWSDynamoDbProvider();
+    const response = await aAWSDynamoDbProvider.getAllItemsTable(tableName);
+    return response;
+  }
+
   public async createRepository(params: any) {
     const aBitbucketProvider = new BitbucketProvider();
 
