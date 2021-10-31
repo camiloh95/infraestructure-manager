@@ -2,7 +2,11 @@ import config from '@config';
 import * as AWS from '@aws-sdk/client-cloudformation';
 
 export class AWSStackProvider {
-  public async createStack(applicationName: string, template: string, parameters: any) {
+  public async createStack(
+      applicationName: string,
+      template: string,
+      parameters: AWS.Parameter[]
+    ) : Promise<AWS.CreateStackOutput> {
     const client = new AWS.CloudFormation({
       region: config.aws.region,
       credentials: {
@@ -11,7 +15,7 @@ export class AWSStackProvider {
       },
     });
 
-    const params = {
+    const params: AWS.CreateStackCommandInput = {
       StackName: applicationName,
       TemplateBody: template,
       Parameters: parameters
@@ -23,7 +27,7 @@ export class AWSStackProvider {
     return response;
   }
 
-  public async deleteStack(applicationName: string) {
+  public async deleteStack(applicationName: string) : Promise<AWS.DeleteStackCommandOutput> {
     const client = new AWS.CloudFormation({
       region: config.aws.region,
       credentials: {
@@ -32,7 +36,7 @@ export class AWSStackProvider {
       },
     });
 
-    const params = {
+    const params : AWS.DeleteStackCommandInput = {
       StackName: applicationName,
     };
 

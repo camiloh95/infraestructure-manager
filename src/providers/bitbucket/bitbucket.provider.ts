@@ -1,6 +1,7 @@
 import qs from 'qs';
 import axios from 'axios';
 import config from '@config';
+import { ICreateRepositoryParams, IProject } from 'interfaces/IBitbucket';
 
 export class BitbucketProvider {
   public async getAuthToken(): Promise<any> {
@@ -27,7 +28,7 @@ export class BitbucketProvider {
     }
   }
 
-  public async createProject(token: string, projectParams: any): Promise<any> {
+  public async createProject(token: string, projectParams: IProject): Promise<any> {
     try {
       const response = await axios({
         method: 'post',
@@ -48,7 +49,7 @@ export class BitbucketProvider {
     }
   }
 
-  public async createRepository(token: string, params: any): Promise<any> {
+  public async createRepository(token: string, params: ICreateRepositoryParams): Promise<any> {
     try {
       const repoSlug = params.repository.name.toLowerCase().replace(/ /g, '-');
       const response = await axios({

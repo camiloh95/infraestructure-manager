@@ -6,8 +6,8 @@ export class ServerController {
     try {
       const aServerService = new ServerService();
       const { application_name: applicationName } = req.body;
-      const response = await aServerService.createECSInstance(applicationName);
-      return res.status(200).json(response);
+      const { status, data } = await aServerService.createECSInstance(applicationName);
+      return res.status(status).json({ data });
     } catch (error) {
       return next(error);
     }
